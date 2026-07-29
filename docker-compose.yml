@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: notifications
+      POSTGRES_USER: notifications
+      POSTGRES_PASSWORD: notifications
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notifications"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Receptor HTTP generico usado para probar el canal SERVICE de punta a punta sin
+  # depender de un servicio externo real. Cualquier POST recibido queda visible en
+  # sus logs (`docker compose logs mock-receiver`).
+  mock-receiver:
+    image: kennethreitz/httpbin
+    ports:
+      - "8081:80"
+
+  notification-service:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: notifications
+      DB_USER: notifications
+      DB_PASSWORD: notifications
+      API_KEY: local-dev-api-key-change-me
+      DISPATCH_POLL_INTERVAL_MS: 2000
+      DISPATCH_BATCH_SIZE: 20
+    ports:
+      - "8080:8080"
+
+volumes:
+  pg-data:
