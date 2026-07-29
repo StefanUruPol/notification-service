@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notifications
+    username: notifications
+    password: notifications
+
+notifications:
+  security:
+    api-key: test-api-key
+  dispatch:
+    poll-interval-ms: 500
+    batch-size: 10
+
+logging:
+  level:
+    root: WARN
